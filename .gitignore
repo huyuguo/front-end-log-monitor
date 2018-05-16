@@ -1,1 +1,5 @@
 .vscode
+my_session.py
+venv
+.idea
+__pycache__
