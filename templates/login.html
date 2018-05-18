@@ -1,12 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-</head>
-<body>
-  
-</body>
-</html>
+{% extends "layout.html"  %}
+{% block body %}
+  <div class="register-container" id="app">
+    <input class="register-element" placeholder="请输入邮箱,例如xxx@yiduyongche.com">
+    <input class="register-element" placeholder="请输入密码，8-16位">
+    <button class="register-element">登录</button>
+  </div>
+  <script>
+  new Vue({
+    el: '#app',
+    delimiters: ['[[', ']]'],
+    data: {
+    }
+  })
+</script>
+{% endblock %}
+

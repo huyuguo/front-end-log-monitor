@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_mail import Mail, Message
-import configmodule
+import config
 import sys
 
 app = Flask(__name__)

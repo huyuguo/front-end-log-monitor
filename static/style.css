@@ -1,0 +1,49 @@
+.message-success {
+    color: #444444;
+    margin-top: 2rem;
+}
+
+.message-failure {
+    color: red;
+    margin-top: 2rem;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+}
+
+.index-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10rem 15rem;
+}
+
+.index-btn {
+    height: 2rem;
+    width: 12rem;
+}
+
+.index-btn:first-child {
+    margin-right: 2rem;
+}
+
+.register-container {
+    display: flex;
+    flex-direction: column;
+    margin: 10rem 15rem;
+}
+
+.register-element {
+    margin-bottom: 0.8rem;
+}
+
+.register-element-input {
+    width: 20rem;
+    height: 2rem;
+}
+
+.register-element-code {
+    margin-left: 1rem;
+}

@@ -1,5 +1,22 @@
 {% extends "layout.html"  %}
 {% block body %}
-  <button>登录</button>
-  <button>注册</button>
+  <div class="index-container" id="app">
+    <button class="index-btn" @click="registerClick">注册</button>
+    <button class="index-btn" @click="loginClick">登录</button>
+  </div>
+  <script>
+  new Vue({
+    el: '#app',
+    delimiters: ['[[', ']]'],
+    methods: {
+      registerClick: function() {
+        window.location.href = '/register'
+      },
+      loginClick: function() {
+        window.location.href = '/login'
+      }
+    }
+  })
+</script>
 {% endblock %}
+
