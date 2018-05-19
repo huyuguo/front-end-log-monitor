@@ -1,0 +1,28 @@
+{% extends "layout.html"  %}
+{% block body %}
+  <div class="index-container" id="app">
+  <button @click="monitorClick">监控</button>
+  </div>
+  <script>
+  new Vue({
+    el: '#app',
+    delimiters: ['[[', ']]'],
+    data: {
+      socket: null
+    },
+    methods: {
+      monitorClick: function() {
+        this.socket = io.connect('http://' + document.domain + ':' + location.port)
+        this.socket.on('connect', () =>{
+          console.log('Connected success')
+          this.socket.emit('my event', {data: 'I\'m connected'})
+        })
+        this.socket.on('disconnect', () => {
+          console.log('Connection disconnected.')
+        })
+      }
+    }
+  })
+</script>
+{% endblock %}
+

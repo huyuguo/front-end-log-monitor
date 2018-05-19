@@ -1,7 +1,7 @@
 #coding:utf-8
 
-from  run import app, mail, db
-from flask import  request, session, render_template,json, g
+from  run import app, socketio, mail, db
+from flask import  request, session, render_template,json, redirect
 from flask_mail import Message
 import model
 import random
@@ -10,11 +10,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route('/')
 def index():
-  name = getattr(g, 'name', None)
+  if 'logged_in' in session:
+    return redirect('/show_monitor')
   return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+  if 'logged_in' in session:
+    return redirect('/show_monitor')
   if request.method == 'POST':
     res = {
       'status': 0,
@@ -51,6 +54,7 @@ def register():
           user.status = 1
           db.session.commit()
           session['logged_in'] = True
+          session['email'] = email
           session.permanent = True
           return json.dumps(res)
         else:
@@ -70,6 +74,8 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+  if 'logged_in' in session:
+    return redirect('/show_monitor')
   if request.method == 'POST':
     res = {
       'status': 0,
@@ -103,6 +109,7 @@ def login():
         checked = check_password_hash(user.password, password)
         if checked:
           session['logged_in'] = True
+          session['email'] = email
           session.permanent = True
           return json.dumps(res)
         else:
@@ -159,7 +166,11 @@ def obtain_code():
 
 @app.route('/show_monitor')
 def show_monitor():
-  pass
+  if 'logged_in' in session:
+    print(session)
+    return render_template('show_monitor.html')
+  else:
+    return render_template('index.html')
 
 @app.route('/show_log_list')
 def show_log_list():
@@ -181,13 +192,15 @@ def add_log():
     return 'failure'
   if uid == '':
     return 'failure'
-  setattr(g, 'name', 'huyuguo')
   return 'success'
 
-@app.route('/add_log_android')
-def add_log_android():
-  return 'success'
+@socketio.on('message')
+def handle_message(message):
+  print('received message: ' + message)
 
+@socketio.on('my event')
+def handle_my_custom_event(json):
+    print('received json: ' + str(json))
 
 @app.errorhandler(404)
 def not_found(error):
@@ -199,9 +212,6 @@ def not_found(error):
   }
   return json.dumps(res), 404
 
-
-def add_log_resolve():
-  pass
 
 # 给用户发送验证码邮件
 def send_email(email, code):
