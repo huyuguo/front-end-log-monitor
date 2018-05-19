@@ -8,7 +8,9 @@
   <link rel="stylesheet" href="/static/style.css" type="text/css">
   <script src="https://cdn.bootcss.com/axios/0.18.0/axios.min.js"></script>
   <script src="https://cdn.bootcss.com/vue/2.5.16/vue.min.js"></script>
-  <!-- import iView -->
+  <script>
+    axios.default.withCredentials = true
+  </script>
 </head>
 <body>
 <div class="container">

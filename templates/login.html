@@ -1,17 +1,69 @@
-{% extends "layout.html"  %}
+{% extends "layout.html" %}
 {% block body %}
-  <div class="register-container" id="app">
-    <input class="register-element" placeholder="请输入邮箱,例如xxx@yiduyongche.com">
-    <input class="register-element" placeholder="请输入密码，8-16位">
-    <button class="register-element">登录</button>
-  </div>
+  <form class="register-container" id="app" method="post" action="/register">
+  <h1>登录</h1>
+    <div class="register-element">
+      <input class="register-element-input" name="email" v-model.trim="email" maxlength="40"
+             placeholder="输入邮箱" >@yiduyongche.com
+    </div>
+    <div class="register-element">
+      <input class="register-element-input" name="password" v-model="password" maxlength="16" placeholder="输入密码，8-16位">
+    </div>
+    <button class="register-element-input" type="button" @click="registerClick" >登录</button>
+
+    <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
+    <div class="find-password">
+      <a href="/register">注册，</a> <a href="/find_password">找回密码</a>
+    </div>
+  </form>
   <script>
-  new Vue({
-    el: '#app',
-    delimiters: ['[[', ']]'],
-    data: {
-    }
-  })
-</script>
+    new Vue({
+      el: '#app',
+      delimiters: ['[[', ']]'],
+      data: {
+        email: '',
+        password: '',
+        message: '',
+        success: true
+      },
+      methods: {
+        registerClick: function () {
+          if (this.checkRegister()) {
+            axios.post('/login', {
+              email: this.email,
+              password: this.password
+            }).then(res => {
+              if (res.data.status == 0) {
+                window.location.href = '/login'
+              } else {
+                this.message = res.data.msg
+                this.success = false
+              }
+            }).catch(error => {
+              console.log(error)
+            })
+          }
+        },
+        checkRegister: function () {
+          if (this.email.length === 0) {
+            this.message = '请输入正确的邮箱!'
+            this.success = false
+            return false
+          }
+          if (this.password.length < 8 || this.password.length > 16) {
+            this.message = '请输入8-16位的密码！'
+            this.success = false
+            return false
+          }
+          if (this.code.length != 6) {
+            this.message = '请输入6位验证码'
+            this.success = false
+            return false
+          }
+          return true
+        }
+      }
+    })
+  </script>
 {% endblock %}
 

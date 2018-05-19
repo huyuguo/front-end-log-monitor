@@ -1,36 +1,58 @@
 {% extends "layout.html" %}
 {% block body %}
   <form class="register-container" id="app" method="post" action="/register">
+  <h1>注册</h1>
     <div class="register-element">
       <input class="register-element-input" name="email" v-model.trim="email" maxlength="40"
-             placeholder="输入邮箱">@yiduyongche.com
+             placeholder="输入邮箱" >@yiduyongche.com
     </div>
     <div class="register-element">
       <input class="register-element-input" name="password" v-model="password" maxlength="16" placeholder="输入密码，8-16位">
     </div>
     <div class="register-element">
       <input class="register-element-input" name="code" v-model="code" maxlength="6" placeholder="输入6位验证码">
-      <button class="register-element-code" type="button" @click="obtainCodeClick">获取验证码</button>
+      <button v-show="!showCountDown" class="register-element-code" type="button" @click="obtainCodeClick">[[obtainCodeBtnTitle]]</button>
+      <label v-show="showCountDown" class="register-element-code">[[countDown]]</label>
     </div>
     <button class="register-element-input" type="button" @click="registerClick" >注册</button>
 
     <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
+    <div class="find-password">
+      <a href="/login">登录，</a> <a href="/find_password">找回密码</a>
+    </div>
   </form>
   <script>
     new Vue({
       el: '#app',
       delimiters: ['[[', ']]'],
       data: {
-        email: 'huyuguo',
-        password: '12345678',
-        code: '123456',
+        email: '',
+        password: '',
+        code: '',
         message: '',
-        success: true
+        success: true,
+        obtainCodeBtnTitle: '获取验证码',
+        countDown: 0,
+        showCountDown: false,
+        interval: null
       },
       methods: {
         registerClick: function () {
           if (this.checkRegister()) {
-            document.forms[0].submit()
+            axios.post('/register', {
+              email: this.email,
+              password: this.password,
+              code: this.code
+            }).then(res => {
+              if (res.data.status == 0) {
+                window.location.href = '/login'
+              } else {
+                this.message = res.data.msg
+                this.success = false
+              }
+            }).catch(error => {
+              console.log(error)
+            })
           }
         },
         checkRegister: function () {
@@ -57,6 +79,17 @@
             this.success = false
             return false
           }
+
+          this.showCountDown = true
+          this.countDown = 60
+          this.interval = setInterval(() => {
+            if (this.countDown <= 1) {
+              clearInterval(this.interval)
+              this.obtainCodeBtnTitle = '重新获取验证码'
+              this.showCountDown = false
+            }
+            this.countDown--
+          }, 1000)
 
           axios.get('/obtain_code', {
             params: {
