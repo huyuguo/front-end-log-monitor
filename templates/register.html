@@ -45,7 +45,7 @@
               code: this.code
             }).then(res => {
               if (res.data.status == 0) {
-                window.location.href = '/login'
+                window.location.href = '/show_monitor'
               } else {
                 this.message = res.data.msg
                 this.success = false

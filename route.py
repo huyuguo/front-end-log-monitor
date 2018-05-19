@@ -1,7 +1,7 @@
 #coding:utf-8
 
 from  run import app, mail, db
-from flask import  request, session, render_template, redirect, url_for, json, flash
+from flask import  request, session, render_template,json, g
 from flask_mail import Message
 import model
 import random
@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route('/')
 def index():
+  name = getattr(g, 'name', None)
   return render_template('index.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -25,14 +26,11 @@ def register():
     email = request.json.get('email')
     password = request.json.get('password')
     code = request.json.get('code')
-    checked = True
     if email == None or len(email) == 0 or len(email) > 60:
-      checked = False
       res['status'] = 1
       res['msg'] = '请输入正确的邮箱'
       return json.dumps(res)
     if password == None or len(password) < 8 or len(password) > 16:
-      checked = False
       res['status'] = 1
       res['msg'] = '请输入8-16位密码'
       return json.dumps(res)
@@ -54,6 +52,7 @@ def register():
           db.session.commit()
           session['logged_in'] = True
           session.permanent = True
+          return json.dumps(res)
         else:
           res['status'] = 1
           res['msg'] = '请输入正确的验证码'
@@ -66,13 +65,56 @@ def register():
         res['status'] = 1
         res['msg'] = '未知用户状态: %d，请联系管理员' % user.status
         return json.dumps(res)
-    return json.dumps(res)
   else:
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-  return render_template('login.html')
+  if request.method == 'POST':
+    res = {
+      'status': 0,
+      'msg': '登录成功',
+      'data': {
+      }
+    }
+
+    email = request.json.get('email')
+    password = request.json.get('password')
+    if email == None or len(email) == 0 or len(email) > 60:
+      res['status'] = 1
+      res['msg'] = '请输入正确的邮箱'
+      return json.dumps(res)
+    if password == None or len(password) < 8 or len(password) > 16:
+      res['status'] = 1
+      res['msg'] = '请输入8-16位密码'
+      return json.dumps(res)
+
+    user = model.User.query.get(email)
+    if user == None:  # 用户没有进行获取验证码操作
+      res['status'] = 1
+      res['msg'] = '用户不存，请先进行注册'
+      return json.dumps(res)
+    else:
+      if user.status == 0:
+        res['status'] = 1
+        res['msg'] = '用户不存，请先进行注册'
+        return json.dumps(res)
+      elif user.status == 1:
+        checked = check_password_hash(user.password, password)
+        if checked:
+          session['logged_in'] = True
+          session.permanent = True
+          return json.dumps(res)
+        else:
+          res['status'] = 1
+          res['msg'] = '请输入正确的密码'
+          return json.dumps(res)
+      else:
+        res['status'] = 1
+        res['msg'] = '未知用户状态: %d，请联系管理员' % user.status
+        return json.dumps(res)
+  else:
+    return render_template('login.html')
 
 @app.route('/obtain_code')
 def obtain_code():
@@ -115,6 +157,36 @@ def obtain_code():
         res['msg'] = '用户为位置状态：%d，请联系管理员!' % user.status
   return json.dumps(res)
 
+@app.route('/show_monitor')
+def show_monitor():
+  pass
+
+@app.route('/show_log_list')
+def show_log_list():
+  pass
+
+@app.route('/show_log_detail')
+def show_log_detail():
+  pass
+
+@app.route('/add_log', methods=['POST'])
+def add_log():
+  req = request.form.get('req', '')
+  res = request.form.get('res', '')
+  url = request.form.get('url', '')
+  uid = request.form.get('uid', '')
+  if req == '':
+    return 'failure'
+  if url == '':
+    return 'failure'
+  if uid == '':
+    return 'failure'
+  setattr(g, 'name', 'huyuguo')
+  return 'success'
+
+@app.route('/add_log_android')
+def add_log_android():
+  return 'success'
 
 
 @app.errorhandler(404)
@@ -126,7 +198,10 @@ def not_found(error):
     }
   }
   return json.dumps(res), 404
-  # return 'This page does not exist', 404
+
+
+def add_log_resolve():
+  pass
 
 # 给用户发送验证码邮件
 def send_email(email, code):

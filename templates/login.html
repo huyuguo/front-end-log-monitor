@@ -34,7 +34,7 @@
               password: this.password
             }).then(res => {
               if (res.data.status == 0) {
-                window.location.href = '/login'
+                window.location.href = '/show_monitor'
               } else {
                 this.message = res.data.msg
                 this.success = false
@@ -52,11 +52,6 @@
           }
           if (this.password.length < 8 || this.password.length > 16) {
             this.message = '请输入8-16位的密码！'
-            this.success = false
-            return false
-          }
-          if (this.code.length != 6) {
-            this.message = '请输入6位验证码'
             this.success = false
             return false
           }
