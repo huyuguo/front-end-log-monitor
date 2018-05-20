@@ -56,5 +56,42 @@
 }
 
 .show-monitor-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
 
+.log-monitor {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.log-monitor-title {
+    display: flex;
+    justify-content: center;
+}
+
+.log-monitor-line {
+    width: 100%;
+}
+
+.log-monitor-content {
+    display: flex;
+    flex-direction: row;
+}
+
+.log-monitor-content-left {
+    flex: 1;
+    height: 100%;
+}
+
+.log-li {
+    padding: 0.5rem 0;
+}
+
+.log-monitor-content-right {
+    flex: 2;
+    height: 50rem;
 }

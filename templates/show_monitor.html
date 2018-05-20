@@ -9,8 +9,18 @@
       [[message]]
     </div>
 
-    <div v-show="showMonitor">
-      <div>[[uid]]监控中</div>
+    <div class="log-monitor" v-show="showMonitor">
+      <div class="log-monitor-title">[[uid]]监控中</div>
+      <hr class="log-monitor-line">
+      <div class="log-monitor-content">
+        <ol class="log-monitor-content-left">
+          <li class="log-li" v-for="log in logs" @click="logClick(log)" v-bind:style="{color: log.color}">
+            [[log.url]]
+          </li>
+        </ol>
+        <textarea class="log-monitor-content-right">[[logDetail]]</textarea>
+      </div>
+
     </div>
   </div>
   <script>
@@ -22,7 +32,8 @@
       message: '',
       uid: '',
       showMonitor: false,
-      logs: []
+      logs: [],
+      logDetail: ''
     },
     mounted: function () {
       this.$nextTick(() => {
@@ -37,6 +48,7 @@
           this.showMonitor = false
         })
         this.socket.on('login', data => {
+          this.logs = []
           console.log(data)
           if(data.status == 0) {
             this.message = ''
@@ -47,13 +59,16 @@
           }
         })
         this.socket.on('log', data => {
-          while (this.logs.length > 10) {
+          data.uuid = this.generateUUID()
+          data.color = 'red'
+          this.logs.forEach(log => {
+            log.color = 'black'
+          })
+          this.logs.unshift(data)
+          this.logDetail = data.url + '\n\n' + data.req + '\n\n' + data.res
+          while (this.logs.length > 20) {
             this.logs.pop()
           }
-
-          this.logs.unshift(data)
-
-          console.log(this.logs)
         })
       })
     },
@@ -78,6 +93,25 @@
       validateNum: function(obj) {
         var reg = /^[0-9]*$/;
         return reg.test(obj);
+      },
+      logClick: function (log) {
+        this.logs.forEach(element => {
+          if (element.uuid == log.uuid) {
+            element.color = 'red'
+          } else {
+            element.color = 'black'
+          }
+        })
+        this.logDetail = log.url + '\n\n' + log.req + '\n\n' + log.res
+      },
+      generateUUID: function () {
+        let d = new Date().getTime();
+        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          let r = (d + Math.random()*16)%16 | 0
+          d = Math.floor(d/16)
+          return (c=='x' ? r : (r&0x3|0x8)).toString(16)
+        })
+        return uuid
       }
     }
   })

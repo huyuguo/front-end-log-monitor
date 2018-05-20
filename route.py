@@ -205,9 +205,9 @@ def add_log():
 
   if room != None:
     socketio.emit('log', {
-      url: url,
-      req: req,
-      res: res
+      'url': url,
+      'req': req,
+      'res': res
     }, room=room)
 
   return 'success'
