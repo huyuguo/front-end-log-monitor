@@ -1,6 +1,6 @@
 #coding:utf-8
 
-from  run import app, socketio, mail, db
+from  run import app, socketio, mail, db, join_room, send, emit
 from flask import  request, session, render_template,json, redirect
 from flask_mail import Message
 import model
@@ -186,21 +186,77 @@ def add_log():
   res = request.form.get('res', '')
   url = request.form.get('url', '')
   uid = request.form.get('uid', '')
+  # print(url)
+  # print(req)
+  # print(res)
+  # print(uid)
+
   if req == '':
     return 'failure'
   if url == '':
     return 'failure'
   if uid == '':
     return 'failure'
+
+  room = None
+  for k, v in enumerate(app.socket_users):
+    if int(v['uid']) == int(uid):
+      room = v['room']
+
+  if room != None:
+    socketio.emit('log', {
+      url: url,
+      req: req,
+      res: res
+    }, room=room)
+
   return 'success'
 
-@socketio.on('message')
-def handle_message(message):
-  print('received message: ' + message)
 
-@socketio.on('my event')
-def handle_my_custom_event(json):
-    print('received json: ' + str(json))
+@socketio.on('login')
+def handle_login_event(data):
+  tempUser = None
+  for k, v in enumerate(app.socket_users):
+    if v['uid'] == data['uid']:
+      tempUser = v
+      break
+
+  email = session['email']
+
+  if tempUser == None:
+    user = {
+      'room': request.sid,
+      'email': email,
+      'uid': data['uid']
+    }
+    join_room(request.sid)
+    app.socket_users.append(user)
+    emit('login', {
+      'status': 0,
+      'msg': '监控成功'
+    }, room=request.sid)
+  else:
+    if tempUser['uid'] == data['uid'] \
+        and tempUser['room'] == request.sid \
+        and tempUser['email'] == email:
+      emit('login', {
+        'status': 0,
+        'msg': '监控成功'
+      }, room=request.sid)
+    else:
+      emit('login', {
+        'status': 1,
+        'msg': 'uid【' + str(data['uid']) + '】已被用户' + tempUser['email'] + '@yiduyongche.com监控'
+      }, room=request.sid)
+  print(app.socket_users)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+  for k, v in enumerate(app.socket_users):
+    if v['room'] == request.sid:
+      del app.socket_users[k]
+      break
+  print(app.socket_users)
 
 @app.errorhandler(404)
 def not_found(error):

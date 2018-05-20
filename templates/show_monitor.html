@@ -1,25 +1,83 @@
 {% extends "layout.html"  %}
 {% block body %}
-  <div class="index-container" id="app">
-  <button @click="monitorClick">监控</button>
+  <div class="show-monitor-container" id="app">
+    <div v-show="!showMonitor">
+      <input type="text" v-model="uid" placeholder="输入要监控的uid">
+      <button @click="monitorClick">监控</button>
+    </div>
+    <div v-show="message != ''">
+      [[message]]
+    </div>
+
+    <div v-show="showMonitor">
+      <div>[[uid]]监控中</div>
+    </div>
   </div>
   <script>
   new Vue({
     el: '#app',
     delimiters: ['[[', ']]'],
     data: {
-      socket: null
+      socket: null,
+      message: '',
+      uid: '',
+      showMonitor: false,
+      logs: []
     },
-    methods: {
-      monitorClick: function() {
+    mounted: function () {
+      this.$nextTick(() => {
         this.socket = io.connect('http://' + document.domain + ':' + location.port)
         this.socket.on('connect', () =>{
           console.log('Connected success')
-          this.socket.emit('my event', {data: 'I\'m connected'})
+          this.message = ''
         })
         this.socket.on('disconnect', () => {
-          console.log('Connection disconnected.')
+          console.log('Disconnected')
+          this.message = '网络异常，请刷新页面重试'
+          this.showMonitor = false
         })
+        this.socket.on('login', data => {
+          console.log(data)
+          if(data.status == 0) {
+            this.message = ''
+            this.showMonitor = true
+          } else {
+            this.message = data.msg
+            this.showMonitor = false
+          }
+        })
+        this.socket.on('log', data => {
+          while (this.logs.length > 10) {
+            this.logs.pop()
+          }
+
+          this.logs.unshift(data)
+
+          console.log(this.logs)
+        })
+      })
+    },
+    methods: {
+      monitorClick: function() {
+        if (this.socket.connected) {
+          if (this.uid == '' || this.uid == '0') {
+            this.message = '请输入正确的uid'
+            return
+          }
+          if (this.validateNum(this.uid)) {
+            this.socket.emit('login', {uid: parseInt(this.uid)})
+            this.message = ''
+          } else {
+            this.message = '请输入正确的uid'
+          }
+
+        } else {
+          this.message = '网络异常，请刷新页面重试'
+        }
+      },
+      validateNum: function(obj) {
+        var reg = /^[0-9]*$/;
+        return reg.test(obj);
       }
     }
   })
