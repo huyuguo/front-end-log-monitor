@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+{% block body %}
+  <div class="admin-container" id="app">
+    <button class="admin-query-users-btn" @click="queryUserClick">查询用户</button>
+    <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
+    <div class="admin-users">
+      <div class="admin-user" v-for="user in users">
+        <div class="admin-user-email">[[user.email]]</div>
+        <div class="admin-user-status">[[user.statusDesc]]</div>
+        <button v-show="user.status==1" @click="passUserClick(user)">审核通过</button>
+        <button v-show="user.status==2" @click="joinBlacklistClick(user)">加入黑名单</button>
+        <button v-show="user.status==3" @click="passUserClick(user)">审核通过</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    new Vue({
+      el: '#app',
+      delimiters: ['[[', ']]'],
+      data: {
+        message: '',
+        success: true,
+        users: []
+      },
+      methods: {
+        queryUserClick: function () {
+          axios.post('/query_users', {
+          }).then(res => {
+            if (res.data.status == 0) {
+              users = res.data.data.users
+              users.forEach(user => {
+                if (user.status == 0) {
+                  user.statusDesc = '注册中'
+                } else if (user.status == 1) {
+                  user.statusDesc = '注册完成'
+                } else if (user.status == 2) {
+                  user.statusDesc = '管理员审核通过'
+                } else if (user.status == 3) {
+                  user.statusDesc = '黑名单用户'
+                } else {
+                  user.statusDesc = '未知用户状态: ' + user.status
+                }
+              })
+              this.users = users
+              this.message = ''
+              this.success = true
+            } else {
+              this.message = res.data.msg
+              this.success = false
+            }
+          }).catch(error => {
+            console.log(error)
+          })
+        },
+        passUserClick: function (user) {
+          axios.post('/pass_user', {
+            email: user.email
+          }).then(res => {
+            if (res.data.status == 0) {
+              this.queryUserClick()
+            } else {
+              this.message = res.data.msg
+              this.success = false
+            }
+          }).catch(error => {
+            console.log(error)
+          })
+        },
+        joinBlacklistClick: function (user) {
+          axios.post('/add_blacklist', {
+            email: user.email
+          }).then(res => {
+            if (res.data.status == 0) {
+              this.queryUserClick()
+            } else {
+              this.message = res.data.msg
+              this.success = false
+            }
+          }).catch(error => {
+            console.log(error)
+          })
+        }
+      }
+    })
+  </script>
+{% endblock %}
+

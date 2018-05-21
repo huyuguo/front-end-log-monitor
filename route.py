@@ -1,7 +1,7 @@
 #coding:utf-8
 
-from  run import app, socketio, mail, db, join_room, send, emit
-from flask import  request, session, render_template,json, redirect
+from  run import app, socketio, mail, db, join_room, emit
+from flask import  request, session, render_template,json, redirect, abort
 from flask_mail import Message
 import model
 import random
@@ -61,7 +61,7 @@ def register():
           res['status'] = 1
           res['msg'] = '请输入正确的验证码'
           return json.dumps(res)
-      elif user.status == 1:
+      elif user.status == 1 or user.status == 2:
         res['status'] = 1
         res['msg'] = '用户已注册，请直接登录'
         return json.dumps(res)
@@ -105,7 +105,7 @@ def login():
         res['status'] = 1
         res['msg'] = '用户不存，请先进行注册'
         return json.dumps(res)
-      elif user.status == 1:
+      elif user.status == 1 or user.status == 2:
         checked = check_password_hash(user.password, password)
         if checked:
           session['logged_in'] = True
@@ -149,14 +149,13 @@ def obtain_code():
     else:
       if user.status == 0:  # 获取验证码
         codetimedelta = datetime.now() - user.updated_time
-        # 测试 50分钟
-        if codetimedelta.seconds > 50 * 60:  # 超过5分钟更新验证码
+        if codetimedelta.seconds > 5 * 60:  # 超过5分钟更新验证码
           code = random.randint(100000, 999999)
           user.code = code
           db.session.commit()
         else:
           send_email(email, user.code)
-      elif user.status == 1:
+      elif user.status == 1 or user.status == 2:
         res['status'] = 1
         res['msg'] = '该邮件已经注册，请直接登录，或者用其他邮件注册.'
       else:
@@ -164,21 +163,65 @@ def obtain_code():
         res['msg'] = '用户为位置状态：%d，请联系管理员!' % user.status
   return json.dumps(res)
 
+@app.route('/admin')
+def admin():
+  email = session['email']
+  if email == 'huyuguo':
+    return render_template('admin.html')
+  else:
+     abort(404)
+
+@app.route('/query_users', methods=['POST'])
+def query_users():
+  res = {
+    'status': 0,
+    'msg': '邮件已发送，请查看验证码',
+    'data': {
+    }
+  }
+  users = []
+  for k, v in enumerate(model.User.query.all()):
+    users.append({
+      'email': v.email,
+      'status': v.status
+    })
+  res['data']['users'] = users
+  return json.dumps(res)
+
+@app.route('/pass_user', methods=['POST'])
+def pass_user():
+  res = {
+    'status': 0,
+    'msg': '邮件已发送，请查看验证码',
+    'data': {
+    }
+  }
+  email = request.json.get('email')
+  user = model.User.query.get(email)
+  user.status = 2
+  db.session.commit()
+  return json.dumps(res)
+
+@app.route('/add_blacklist', methods=['POST'])
+def add_blacklist():
+  res = {
+    'status': 0,
+    'msg': '成功加入黑名单',
+    'data': {
+    }
+  }
+  email = request.json.get('email')
+  user = model.User.query.get(email)
+  user.status = '3'
+  db.session.commit()
+  return json.dumps(res)
+
 @app.route('/show_monitor')
 def show_monitor():
   if 'logged_in' in session:
-    print(session)
     return render_template('show_monitor.html')
   else:
     return render_template('index.html')
-
-@app.route('/show_log_list')
-def show_log_list():
-  pass
-
-@app.route('/show_log_detail')
-def show_log_detail():
-  pass
 
 @app.route('/add_log', methods=['POST'])
 def add_log():
@@ -186,10 +229,6 @@ def add_log():
   res = request.form.get('res', '')
   url = request.form.get('url', '')
   uid = request.form.get('uid', '')
-  # print(url)
-  # print(req)
-  # print(res)
-  # print(uid)
 
   if req == '':
     return 'failure'
@@ -215,13 +254,29 @@ def add_log():
 
 @socketio.on('login')
 def handle_login_event(data):
+
+
+  email = session['email']
+  user = model.User.query.get(email)
+  if user.status == 1:
+    emit('login', {
+      'status': 1,
+      'msg': '请联系管理员审核通过该账户'
+    }, room=request.sid)
+    return
+
+  if user.status == 3:
+    emit('login', {
+      'status': 1,
+      'msg': '该账户为黑名单账户，无法进行日志监控'
+    }, room=request.sid)
+    return
+
   tempUser = None
   for k, v in enumerate(app.socket_users):
     if v['uid'] == data['uid']:
       tempUser = v
       break
-
-  email = session['email']
 
   if tempUser == None:
     user = {
@@ -248,10 +303,10 @@ def handle_login_event(data):
         'status': 1,
         'msg': 'uid【' + str(data['uid']) + '】已被用户' + tempUser['email'] + '@yiduyongche.com监控'
       }, room=request.sid)
-  print(app.socket_users)
+
 
 @socketio.on('disconnect')
-def handle_disconnect():
+def handle_disconnect_event():
   for k, v in enumerate(app.socket_users):
     if v['room'] == request.sid:
       del app.socket_users[k]

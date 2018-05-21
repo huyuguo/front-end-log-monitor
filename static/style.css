@@ -59,6 +59,12 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.monitor-message {
+    margin-top: 1rem;
 }
 
 .log-monitor {
@@ -94,4 +100,36 @@
 .log-monitor-content-right {
     flex: 2;
     height: 50rem;
+}
+
+.admin-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.admin-query-users-btn {
+    width: 50%;
+    height: 2rem;
+}
+
+.admin-users {
+    width: 100%;
+}
+
+.admin-user {
+    display: flex;
+    flex-direction: row;
+    height: 3rem;
+    align-items: center;
+}
+
+.admin-user-email {
+    width: 12rem;
+}
+
+.admin-user-status {
+    width: 12rem;
 }

@@ -5,7 +5,7 @@
       <input type="text" v-model="uid" placeholder="输入要监控的uid">
       <button @click="monitorClick">监控</button>
     </div>
-    <div v-show="message != ''">
+    <div class="monitor-message" v-show="message != ''">
       [[message]]
     </div>
 
