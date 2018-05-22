@@ -2,7 +2,7 @@
 {% block body %}
   <div class="show-monitor-container" id="app">
     <div v-show="!showMonitor">
-      <input type="text" v-model="uid" placeholder="输入要监控的uid">
+      <input type="text" v-model="uid" placeholder="输入要监控的uid" @keyup.enter="monitorEnterClick">
       <button @click="monitorClick">监控</button>
     </div>
     <div class="monitor-message" v-show="message != ''">
@@ -60,10 +60,16 @@
         })
         this.socket.on('log', data => {
           data.uuid = this.generateUUID()
-          data.color = 'red'
+          let choosed = false
           this.logs.forEach(log => {
-            log.color = 'black'
+            if (log.color == 'red'){
+              choosed = true
+            }
           })
+
+          if (choosed == false) {
+            data.color = 'red'
+          }
           this.logs.unshift(data)
           this.logDetail = data.url + '\n\n' + data.req + '\n\n' + data.res
           while (this.logs.length > 20) {
@@ -73,6 +79,9 @@
       })
     },
     methods: {
+      monitorEnterClick: function () {
+        this.monitorClick()
+      },
       monitorClick: function() {
         if (this.socket.connected) {
           if (this.uid == '' || this.uid == '0') {

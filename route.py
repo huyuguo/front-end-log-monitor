@@ -218,6 +218,7 @@ def add_blacklist():
 
 @app.route('/show_monitor')
 def show_monitor():
+  print(session)
   if 'logged_in' in session:
     return render_template('show_monitor.html')
   else:

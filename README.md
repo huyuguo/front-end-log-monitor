@@ -1,3 +1,4 @@
 # front-end-log-monitor
 
-pip3 install Flask
+
+pip3 freeze > requirements.txt

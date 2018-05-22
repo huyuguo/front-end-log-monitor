@@ -10,7 +10,6 @@
       <input class="register-element-input" name="password" v-model="password" maxlength="16" placeholder="输入密码，8-16位">
     </div>
     <button class="register-element-input" type="button" @click="registerClick" >登录</button>
-
     <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
     <div class="find-password">
       <a href="/register">注册，</a> <a href="/find_password">找回密码</a>
