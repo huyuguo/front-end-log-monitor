@@ -272,6 +272,8 @@ def handle_login_event(data):
     return
 
   tempUser = None
+  print(app.socket_users)
+  print(data)
   for k, v in enumerate(app.socket_users):
     print(k, v)
     if v['uid'] == data['uid']:
