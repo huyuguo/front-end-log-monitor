@@ -303,11 +303,7 @@ def handle_login_event(data):
       else:
         disconnect(tempUser['room'])
         for k, v in enumerate(app.socket_users):
-<<<<<<< HEAD
-          if v['uid'] == tempUser['uid']:
-=======
           if v['room'] == tempUser['room']:
->>>>>>> 代码优化
             del app.socket_users[k]
             break
         join_room(request.sid)
