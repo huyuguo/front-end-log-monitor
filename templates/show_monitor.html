@@ -2,7 +2,7 @@
 {% block body %}
   <div class="show-monitor-container" id="app">
     <div v-show="!showMonitor">
-      <input type="text" v-model="uid" placeholder="输入要监控的uid" @keyup.enter="monitorEnterClick">
+      <input type="text" autofocus="autofocus" v-model="uid" placeholder="输入要监控的uid" @keyup.enter="monitorEnterClick">
       <button @click="monitorClick">监控</button>
     </div>
     <div class="monitor-message" v-show="message != ''">

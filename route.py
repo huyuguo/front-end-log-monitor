@@ -223,6 +223,10 @@ def show_monitor():
   else:
     return render_template('index.html')
 
+@app.route('/show_connect')
+def show_connect():
+  render_template('show_connect.html')
+
 @app.route('/add_log', methods=['POST'])
 def add_log():
   req = request.form.get('req', '')
@@ -254,7 +258,6 @@ def add_log():
 
 @socketio.on('login')
 def handle_login_event(data):
-
   email = session['email']
   user = model.User.query.get(email)
   if user.status == 1:
@@ -271,28 +274,27 @@ def handle_login_event(data):
     }, room=request.sid)
     return
 
+  print(app.socket_users)
   tempUser = None
   for k, v in enumerate(app.socket_users):
+    print(v)
     if v['uid'] == data['uid']:
       tempUser = v
       break
 
   if tempUser == None:
-    user = {
+    socketUser = {
       'room': request.sid,
       'email': email,
       'uid': data['uid']
     }
     join_room(request.sid)
-    app.socket_users.append(user)
+    app.socket_users.append(socketUser)
     emit('login', {
       'status': 0,
       'msg': '监控成功'
     }, room=request.sid)
   else:
-    print(tempUser['uid'], data['uid'])
-    print(tempUser['room'], request.sid)
-    print(tempUser['email'], email)
     if tempUser['uid'] == data['uid'] \
         and tempUser['email'] == email:
       if tempUser['room'] == request.sid:
@@ -301,9 +303,14 @@ def handle_login_event(data):
           'msg': '监控成功'
         }, room=request.sid)
       else:
+        socketUser = {
+          'room': request.sid,
+          'email': email,
+          'uid': data['uid']
+        }
         disconnect(tempUser['room'])
         join_room(request.sid)
-        app.socket_users.append(user)
+        app.socket_users.append(socketUser)
         emit('login', {
           'status': 0,
           'msg': '监控成功'
