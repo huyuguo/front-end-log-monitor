@@ -1,7 +1,7 @@
 #coding:utf-8
 
 from  run import app, socketio, mail, db, join_room, emit, disconnect
-from flask import  request, session, render_template,json, redirect, abort
+from flask import  request, session, render_template,json, redirect, abort, url_for
 from flask_mail import Message
 import model
 import random
@@ -72,6 +72,59 @@ def register():
   else:
     return render_template('register.html')
 
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+  if 'logged_in' in session:
+    return redirect('/show_monitor')
+  if request.method == 'POST':
+    res = {
+      'status': 0,
+      'msg': '找回密码成功',
+      'data': {
+      }
+    }
+
+    email = request.json.get('email')
+    password = request.json.get('password')
+    code = request.json.get('code')
+    if email == None or len(email) == 0 or len(email) > 60:
+      res['status'] = 1
+      res['msg'] = '请输入正确的邮箱'
+      return json.dumps(res)
+    if password == None or len(password) < 8 or len(password) > 16:
+      res['status'] = 1
+      res['msg'] = '请输入8-16位密码'
+      return json.dumps(res)
+    if code == None or len(code) != 6:
+      res['status'] = 1
+      res['msg'] = '请输入正确的验证码'
+      return json.dumps(res)
+
+    user = model.User.query.get(email)
+    if user == None:
+      res['status'] = 1
+      res['msg'] = '用户不存在，请先进行注册'
+      return json.dumps(res)
+    else:
+      if user.status == 0 or user.status == 1 or user.status == 2:
+        if code == user.code:  # 重置密码成功
+          user.password = generate_password_hash(password)
+          db.session.commit()
+          session['logged_in'] = True
+          session['email'] = email
+          session.permanent = True
+          return json.dumps(res)
+        else:
+          res['status'] = 1
+          res['msg'] = '请输入正确的验证码'
+          return json.dumps(res)
+      else:
+        res['status'] = 1
+        res['msg'] = '未知用户状态: %d，请联系管理员' % user.status
+        return json.dumps(res)
+  else:
+    return render_template('change_password.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   if 'logged_in' in session:
@@ -132,45 +185,76 @@ def obtain_code():
     }
   }
 
+
+  action = request.args.get('action')
   email = str.strip(request.args.get('email'))
-  if len(email) == 0:
-    res['status'] = 1
-    res['msg'] = '请输入正确的邮箱!'
-  else:
-    user = model.User.query.get(email)
-    if user == None:
-      user = model.User()
-      user.email = email
-      code = random.randint(100000, 999999)
-      user.code = code
-      db.session.add(user)
-      db.session.commit()
-      send_email(email, code)
+  print(action)
+  if action == 'register':
+    if len(email) == 0:
+      res['status'] = 1
+      res['msg'] = '请输入正确的邮箱!'
     else:
-      if user.status == 0:  # 获取验证码
-        codetimedelta = datetime.now() - user.updated_time
-        if codetimedelta.seconds > 5 * 60:  # 超过5分钟更新验证码
-          code = random.randint(100000, 999999)
-          user.code = code
-          db.session.commit()
-        else:
-          send_email(email, user.code)
-      elif user.status == 1 or user.status == 2:
-        res['status'] = 1
-        res['msg'] = '该邮件已经注册，请直接登录，或者用其他邮件注册.'
+      user = model.User.query.get(email)
+      if user == None:
+        user = model.User()
+        user.email = email
+        code = random.randint(100000, 999999)
+        user.code = code
+        db.session.add(user)
+        db.session.commit()
+        send_email(email, code)
       else:
+        if user.status == 0:  # 获取验证码
+          codetimedelta = datetime.now() - user.updated_time
+          if codetimedelta.seconds > 5 * 60:  # 超过5分钟更新验证码
+            code = random.randint(100000, 999999)
+            user.code = code
+            db.session.commit()
+          else:
+            send_email(email, user.code)
+        elif user.status == 1 or user.status == 2:
+          res['status'] = 1
+          res['msg'] = '该邮件已经注册，请直接登录，或者用其他邮件注册.'
+        else:
+          res['status'] = 1
+          res['msg'] = '用户为位置状态：%d，请联系管理员!' % user.status
+  else:
+    if len(email) == 0:
+      res['status'] = 1
+      res['msg'] = '请输入正确的邮箱!'
+    else:
+      user = model.User.query.get(email)
+      if user == None:
         res['status'] = 1
-        res['msg'] = '用户为位置状态：%d，请联系管理员!' % user.status
+        res['msg'] = '该用户未注册，请先进行注册'
+      else:
+        if user.status == 0 or user.status == 1 or user.status == 2:  # 获取验证码
+          codetimedelta = datetime.now() - user.updated_time
+          if codetimedelta.seconds > 5 * 60:  # 超过5分钟更新验证码
+            code = random.randint(100000, 999999)
+            user.code = code
+            db.session.commit()
+          else:
+            send_email(email, user.code)
+        else:
+          res['status'] = 1
+          res['msg'] = '用户为位置状态：%d，请联系管理员!' % user.status
+
   return json.dumps(res)
 
+# 用户管理界面
 @app.route('/admin')
 def admin():
-  email = session['email']
-  if email == 'huyuguo':
-    return render_template('admin.html')
+  if 'logged_in' in session:
+    email = session['email']
+    if email == 'huyuguo':
+      return render_template('admin.html')
+    else:
+      abort(404)
   else:
-     abort(404)
+    return redirect(url_for('index'))
 
+# 查询所有用户
 @app.route('/query_users', methods=['POST'])
 def query_users():
   res = {
@@ -188,6 +272,7 @@ def query_users():
   res['data']['users'] = users
   return json.dumps(res)
 
+# 通过审核
 @app.route('/pass_user', methods=['POST'])
 def pass_user():
   res = {
@@ -202,6 +287,7 @@ def pass_user():
   db.session.commit()
   return json.dumps(res)
 
+# 加入黑名单
 @app.route('/add_blacklist', methods=['POST'])
 def add_blacklist():
   res = {
@@ -216,16 +302,36 @@ def add_blacklist():
   db.session.commit()
   return json.dumps(res)
 
+# 当前用户连接查看页面
+@app.route('/connect')
+def connect():
+  if 'logged_in' in session:
+    email = session['email']
+    if email == 'huyuguo':
+      return render_template('connect.html')
+    else:
+      abort(404)
+  else:
+    return redirect(url_for('index'))
+
+# 当前用户连接查看接口
+@app.route('/query_connect', methods=['POST'])
+def query_connect():
+  res = {
+    'status': 0,
+    'msg': '邮件已发送，请查看验证码',
+    'data': {
+    }
+  }
+  res['data']['connects'] = app.socket_users
+  return json.dumps(res)
+
 @app.route('/show_monitor')
 def show_monitor():
   if 'logged_in' in session:
     return render_template('show_monitor.html')
   else:
-    return render_template('index.html')
-
-@app.route('/show_connect')
-def show_connect():
-  render_template('show_connect.html')
+    return redirect(url_for('index'))
 
 @app.route('/add_log', methods=['POST'])
 def add_log():

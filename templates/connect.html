@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block body %}
+  <div class="admin-container" id="app">
+    <button class="admin-query-users-btn" @click="queryUserClick">查询连接</button>
+    <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
+    <div class="admin-users">
+      <div class="admin-user" v-for="connect in connects">
+        <div class="admin-user-email">[[connect.email]]</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    new Vue({
+      el: '#app',
+      delimiters: ['[[', ']]'],
+      data: {
+        message: '',
+        success: true,
+        connects: []
+      },
+      methods: {
+        queryUserClick: function () {
+          axios.post('/query_connect', {
+          }).then(res => {
+            if (res.data.status == 0) {
+              this.connects = res.data.data.connects
+              this.message = ''
+              this.success = true
+            } else {
+              this.message = res.data.msg
+              this.success = false
+            }
+          }).catch(error => {
+            console.log(error)
+          })
+        }
+      }
+    })
+  </script>
+{% endblock %}
+
