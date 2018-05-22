@@ -7,7 +7,7 @@
              placeholder="输入邮箱" >@yiduyongche.com
     </div>
     <div class="register-element">
-      <input class="register-element-input" name="password" v-model="password" maxlength="16" placeholder="输入密码，8-16位">
+      <input type="password" class="register-element-input" name="password" v-model="password" maxlength="16" placeholder="输入密码，8-16位">
     </div>
     <button class="register-element-input" type="button" @click="registerClick" >登录</button>
     <div v-bind:class="[success ? 'message-success':'message-failure']">[[message]]</div>
