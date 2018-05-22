@@ -305,15 +305,9 @@ def handle_login_event(data):
         }, room=request.sid)
       else:
         disconnect(tempUser['room'])
-        for k, v in enumerate(app.socket_users):
-          if v['room'] == tempUser['room']:
-            del app.socket_users[k]
-            break
-        join_room(request.sid)
-        app.socket_users.append(user)
         emit('login', {
-          'status': 0,
-          'msg': '监控成功'
+          'status': 1,
+          'msg': '网络异常，请重试'
         }, room=request.sid)
     else:
       emit('login', {
