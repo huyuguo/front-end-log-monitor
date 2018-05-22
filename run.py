@@ -1,5 +1,5 @@
 #coding:utf-8
-from app import app, socketio, db, mail, join_room, send, emit, config
+from app import app, socketio, db, mail, join_room, send, emit, disconnect, config
 import route
 import model
 

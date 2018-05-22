@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, session
-from flask_socketio import SocketIO, join_room, send, emit
+from flask_socketio import SocketIO, join_room, send, emit, disconnect
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from  datetime import timedelta

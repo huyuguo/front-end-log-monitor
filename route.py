@@ -1,6 +1,6 @@
 #coding:utf-8
 
-from  run import app, socketio, mail, db, join_room, emit
+from  run import app, socketio, mail, db, join_room, emit, disconnect
 from flask import  request, session, render_template,json, redirect, abort
 from flask_mail import Message
 import model
@@ -294,12 +294,24 @@ def handle_login_event(data):
     print(tempUser['room'], request.sid)
     print(tempUser['email'], email)
     if tempUser['uid'] == data['uid'] \
-        and tempUser['room'] == request.sid \
         and tempUser['email'] == email:
-      emit('login', {
-        'status': 0,
-        'msg': '监控成功'
-      }, room=request.sid)
+      if tempUser['room'] == request.sid:
+        emit('login', {
+          'status': 0,
+          'msg': '监控成功'
+        }, room=request.sid)
+      else:
+        disconnect(tempUser['room'])
+        for k, v in enumerate(app.socket_users):
+          if v['uid'] == tempUser['uid']:
+            del app.socket_users[k]
+            break
+        join_room(request.sid)
+        app.socket_users.append(user)
+        emit('login', {
+          'status': 0,
+          'msg': '监控成功'
+        }, room=request.sid)
     else:
       emit('login', {
         'status': 1,
