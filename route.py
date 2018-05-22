@@ -272,10 +272,7 @@ def handle_login_event(data):
     return
 
   tempUser = None
-  print(app.socket_users)
-  print(data)
   for k, v in enumerate(app.socket_users):
-    print(k, v)
     if v['uid'] == data['uid']:
       tempUser = v
       break
@@ -305,9 +302,11 @@ def handle_login_event(data):
         }, room=request.sid)
       else:
         disconnect(tempUser['room'])
+        join_room(request.sid)
+        app.socket_users.append(user)
         emit('login', {
-          'status': 1,
-          'msg': '网络异常，请重试'
+          'status': 0,
+          'msg': '监控成功'
         }, room=request.sid)
     else:
       emit('login', {
