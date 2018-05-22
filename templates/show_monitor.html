@@ -37,7 +37,13 @@
     },
     mounted: function () {
       this.$nextTick(() => {
-        this.socket = io.connect('http://' + document.domain + ':' + location.port)
+        console.info(document.domain)
+        if (document.domain == '0.0.0.0') {
+          this.socket = io.connect('http://' + document.domain + ':' + location.port)
+        } else {
+          this.socket = io.connect('https://' + document.domain + ':' + location.port)
+        }
+
         this.socket.on('connect', () =>{
           console.log('Connected success')
           this.message = ''
