@@ -75,9 +75,9 @@
 
           if (choosed == false) {
             data.color = 'red'
+            this.logDetail = data.url + '\n\n' + data.req + '\n\n' + data.res
           }
           this.logs.unshift(data)
-          this.logDetail = data.url + '\n\n' + data.req + '\n\n' + data.res
           while (this.logs.length > 20) {
             this.logs.pop()
           }

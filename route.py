@@ -218,7 +218,6 @@ def add_blacklist():
 
 @app.route('/show_monitor')
 def show_monitor():
-  print(session)
   if 'logged_in' in session:
     return render_template('show_monitor.html')
   else:
@@ -256,7 +255,6 @@ def add_log():
 @socketio.on('login')
 def handle_login_event(data):
 
-
   email = session['email']
   user = model.User.query.get(email)
   if user.status == 1:
@@ -292,6 +290,9 @@ def handle_login_event(data):
       'msg': '监控成功'
     }, room=request.sid)
   else:
+    print(tempUser['uid'], data['uid'])
+    print(tempUser['room'], request.sid)
+    print(tempUser['email'], email)
     if tempUser['uid'] == data['uid'] \
         and tempUser['room'] == request.sid \
         and tempUser['email'] == email:
@@ -312,7 +313,6 @@ def handle_disconnect_event():
     if v['room'] == request.sid:
       del app.socket_users[k]
       break
-  print(app.socket_users)
 
 @app.errorhandler(404)
 def not_found(error):
