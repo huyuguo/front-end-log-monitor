@@ -6,6 +6,7 @@ class Config(object):
   FLASK_ENV = os.environ.get('FLASK_ENV')
   FLASK_DEBUG = os.environ.get('FLASK_DEBUG')
 
+  FLASK_HOST = os.environ.get('FLASK_HOST')
   # EMAIL CONFIG
   MAIL_SERVER = 'smtp.qiye.163.com'
   MAIL_PORT = '465'
