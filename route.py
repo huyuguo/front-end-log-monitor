@@ -333,13 +333,32 @@ def show_monitor():
   else:
     return redirect(url_for('index'))
 
-@app.route('/add_log', methods=['POST'])
-def add_log():
+@app.route('/add_log_wx', methods=['POST'])
+def add_log_wx():
+  req = request.json.get('req', '')
+  res = request.json.get('res', '')
+  url = request.json.get('url', '')
+  uid = request.json.get('uid', '')
+  return add_log(req, res, url, uid)
+
+
+@app.route('/add_log_ios', methods=['POST'])
+def add_log_ios():
   req = request.form.get('req', '')
   res = request.form.get('res', '')
   url = request.form.get('url', '')
   uid = request.form.get('uid', '')
+  return add_log(req, res, url, uid)
 
+@app.route('/add_log_android', methods=['POST'])
+def add_log_android():
+  req = request.form.get('req', '')
+  res = request.form.get('res', '')
+  url = request.form.get('url', '')
+  uid = request.form.get('uid', '')
+  return add_log(req, res, url, uid)
+
+def add_log(req, res, url, uid):
   if req == '':
     return 'failure'
   if url == '':
