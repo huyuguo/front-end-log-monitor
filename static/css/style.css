@@ -76,13 +76,12 @@
 
 .log-monitor-top {
     display: flex;
+    justify-content: center;
     flex-direction: row;
 }
 
-.log-monitor-title {
-    display: flex;
-    flex: 1;
-    /*justify-content: center;*/
+.log-monitor-clear {
+    margin-left: 10px;
 }
 
 .log-monitor-line {
