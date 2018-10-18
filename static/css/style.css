@@ -74,9 +74,15 @@
     flex-direction: column;
 }
 
+.log-monitor-top {
+    display: flex;
+    flex-direction: row;
+}
+
 .log-monitor-title {
     display: flex;
-    justify-content: center;
+    flex: 1;
+    /*justify-content: center;*/
 }
 
 .log-monitor-line {

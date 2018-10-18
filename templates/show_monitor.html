@@ -10,7 +10,10 @@
     </div>
 
     <div class="log-monitor" v-show="showMonitor">
-      <div class="log-monitor-title">[[uid]]监控中</div>
+      <div class="log-monitor-top">
+        <div class="log-monitor-title">[[uid]]监控中</div>
+        <button class="log-monitor-clear" v-show="logs.length>0" @click="clearLogs">清空</button>
+      </div>
       <hr class="log-monitor-line">
       <div class="log-monitor-content">
         <ol class="log-monitor-content-left">
@@ -103,6 +106,10 @@
         } else {
           this.message = '网络异常，请刷新页面重试'
         }
+      },
+      clearLogs: function() {
+        this.logs = [];
+        this.logDetail = '';
       },
       validateNum: function(obj) {
         var reg = /^[0-9]*$/;
