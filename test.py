@@ -23,26 +23,32 @@
 
 
 
-users = []
+# users = []
+#
+# users.append({
+#   'name': 'xxxx1'
+# })
+#
+# users.append({
+#   'name': 'xxxx2'
+# })
+#
+# users.append({
+#   'name': 'xxxx3'
+# })
+#
+#
+#
+# for k, v in enumerate(users):
+#   if v['name'] == 'xxxx2':
+#     print(k, v)
+#     del users[k]
+#     break
+#
+# print(users)
+cityName = str(b'\xe5\x8c\x97\xe4\xba\xac\xe5\xb8\x82', 'utf-8')
+print(cityName)
 
-users.append({
-  'name': 'xxxx1'
-})
 
-users.append({
-  'name': 'xxxx2'
-})
-
-users.append({
-  'name': 'xxxx3'
-})
-
-
-
-for k, v in enumerate(users):
-  if v['name'] == 'xxxx2':
-    print(k, v)
-    del users[k]
-    break
-
-print(users)
+togo = str(b'\xbf\xec\xa3\xdc\x08\xcd\xbe\xc7\xed\x9d\xff\x84', 'utf-8')
+print(togo)
