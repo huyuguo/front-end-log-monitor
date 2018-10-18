@@ -116,7 +116,7 @@
             element.color = 'black'
           }
         })
-        this.logDetail = log.url + '\n\n' + Json.stringify(JSON.parse(log.req, null, 4))  + '\n\n' + Json.stringify(JSON.parse(log.res, null, 4))
+         this.logDetail = log.url + '\n\n' + log.req + '\n\n' + log.res
       },
       generateUUID: function () {
         let d = new Date().getTime();
